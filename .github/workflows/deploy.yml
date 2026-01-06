@@ -1,0 +1,72 @@
+name: Deploy to Production Server
+
+on:
+  workflow_run:
+    workflows: ["Build Backend Docker Image", "Build Frontend Docker Image"]
+    types:
+      - completed
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    # Solo ejecutar si los builds fueron exitosos
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to Server via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          port: ${{ secrets.DEPLOY_PORT || 22 }}
+          script: |
+            # Navegar al directorio del proyecto
+            cd ${{ secrets.DEPLOY_PATH }}
+
+            # Hacer pull de las nuevas imágenes
+            docker compose -f docker-compose.prod.yml pull
+
+            # Reiniciar los servicios (mantiene la base de datos)
+            docker compose -f docker-compose.prod.yml up -d --force-recreate --no-deps web server
+
+            # Limpiar imágenes antiguas
+            docker image prune -f
+
+            # Mostrar estado de los contenedores
+            docker compose -f docker-compose.prod.yml ps
+
+      - name: Verify Deployment
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          port: ${{ secrets.DEPLOY_PORT || 22 }}
+          script: |
+            cd ${{ secrets.DEPLOY_PATH }}
+
+            # Esperar 10 segundos para que los servicios inicien
+            sleep 10
+
+            # Verificar que los contenedores estén corriendo
+            if docker compose -f docker-compose.prod.yml ps | grep -q "Up"; then
+              echo "✅ Deployment successful - Containers are running"
+              docker compose -f docker-compose.prod.yml ps
+            else
+              echo "❌ Deployment failed - Containers are not running"
+              docker compose -f docker-compose.prod.yml logs --tail=50
+              exit 1
+            fi
+
+      - name: Notify on Failure
+        if: failure()
+        run: |
+          echo "❌ Deployment failed. Check the logs for more details."
+          exit 1
