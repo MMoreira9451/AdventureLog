@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  web:
+    image: ghcr.io/seanmorley15/adventurelog-frontend:latest
+    container_name: adventurelog-frontend
+    restart: unless-stopped
+    environment:
+      - ORIGIN=${PUBLIC_URL:-http://your-truenas-ip:8015}
+      - BODY_SIZE_LIMIT=Infinity
+    ports:
+      - "${FRONTEND_PORT:-8015}:3000"
+    depends_on:
+      - server
+    networks:
+      - adventurelog
+
+  server:
+    image: ghcr.io/seanmorley15/adventurelog:latest
+    container_name: adventurelog-backend
+    restart: unless-stopped
+    environment:
+      - PGHOST=db
+      - PGDATABASE=${POSTGRES_DB:-adventurelog}
+      - PGUSER=${POSTGRES_USER:-adventurelog}
+      - PGPASSWORD=${POSTGRES_PASSWORD:-changeme123}
+      - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY:-your-secret-key-change-this}
+      - DJANGO_ADMIN_USERNAME=${DJANGO_ADMIN_USERNAME:-admin}
+      - DJANGO_ADMIN_PASSWORD=${DJANGO_ADMIN_PASSWORD:-admin}
+      - DJANGO_ADMIN_EMAIL=${DJANGO_ADMIN_EMAIL:-admin@example.com}
+      - PUBLIC_URL=${PUBLIC_URL:-http://your-truenas-ip:8015}
+      - CSRF_TRUSTED_ORIGINS=${PUBLIC_URL:-http://your-truenas-ip:8015}
+      - DJANGO_DEBUG=False
+    ports:
+      - "${BACKEND_PORT:-8016}:8000"
+    depends_on:
+      - db
+    volumes:
+      - adventurelog_media:/code/media/
+    networks:
+      - adventurelog
+
+  db:
+    image: postgis/postgis:16-3.5
+    container_name: adventurelog-db
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB:-adventurelog}
+      - POSTGRES_USER=${POSTGRES_USER:-adventurelog}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-changeme123}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    networks:
+      - adventurelog
+
+volumes:
+  postgres_data:
+    driver: local
+  adventurelog_media:
+    driver: local
+
+networks:
+  adventurelog:
+    driver: bridge

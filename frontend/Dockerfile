@@ -36,14 +36,17 @@ RUN rm -f .env
 # Build SvelteKit app
 RUN pnpm run build
 
-# Make startup script executable
-RUN chmod +x ./startup.sh
+# Convert startup.sh line endings from Windows to Unix and make executable
+RUN sed -i 's/\r$//' ./startup.sh && chmod +x ./startup.sh
 
-# Change to non-root user for security
-USER node:node
+# Change ownership of build directory to node user
+RUN chown -R node:node /app
 
 # Expose the port that the app is listening on
 EXPOSE 3000
 
-# Run startup.sh instead of the default command
-CMD ["./startup.sh"]
+# Change to non-root user for security
+USER node:node
+
+# Run with absolute path and shell
+CMD ["/bin/sh", "/app/startup.sh"]

@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(docker compose exec:*)",
+      "Bash(docker compose:*)",
+      "Bash(npx svelte-check:*)",
+      "Bash(dir:*)",
+      "Bash(docker-compose:*)",
+      "Bash(findstr:*)",
+      "Bash(timeout 10 bash:*)",
+      "Bash(timeout 15 bash:*)",
+      "Bash(docker run:*)",
+      "Bash(timeout 20 bash:*)",
+      "Bash(timeout 25 bash:*)",
+      "Bash(docker exec:*)"
+    ]
+  }
+}

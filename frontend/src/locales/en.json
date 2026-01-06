@@ -1,7 +1,7 @@
 {
   "navbar": {
     "adventures": "Adventures",
-    "collections": "Collections",
+    "collections": "Routes",
     "worldtravel": "World Travel",
     "map": "Map",
     "users": "Users",
@@ -1005,8 +1005,8 @@
   },
   "locations": {
     "location": "Location",
-    "locations": "Locations",
-    "my_locations": "My Locations"
+    "locations": "Trails",
+    "my_locations": "My Trails"
   },
   "settings_download_backup": "Download Backup",
   "invites": {
@@ -1041,5 +1041,43 @@
     "wanderer_integration_desc": "Connect to Wanderer to easily import and view your trails in locations",
     "connection_error": "Error connecting to Wanderer",
     "connected": "Successfully connected to Wanderer"
+  },
+  "point_types": {
+    "summit": "Summit/Peak",
+    "viewpoint": "Viewpoint",
+    "refuge": "Refuge/Hut",
+    "campsite": "Campsite",
+    "water_source": "Water Source",
+    "pass": "Mountain Pass",
+    "trailhead": "Trailhead",
+    "emergency_shelter": "Emergency Shelter",
+    "waypoint": "Waypoint",
+    "other": "Other"
+  },
+  "route_types": {
+    "circular": "Circular Loop",
+    "linear": "Linear/Out and Back",
+    "traverse": "Traverse",
+    "multi_day": "Multi-Day Trek"
+  },
+  "difficulty": {
+    "easy": "Easy",
+    "moderate": "Moderate",
+    "hard": "Hard",
+    "very_hard": "Very Hard",
+    "extreme": "Extreme"
+  },
+  "route": {
+    "distance": "Distance",
+    "elevation_gain": "Elevation Gain",
+    "duration": "Duration",
+    "type": "Type"
+  },
+  "trail": {
+    "water": "Water",
+    "no_signal": "No Signal",
+    "permit": "Permit",
+    "conditions": "Trail Conditions",
+    "safety_info": "Safety Information"
   }
 }

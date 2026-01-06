@@ -9,17 +9,22 @@ export const load = (async (event) => {
 	if (!event.locals.user) {
 		return redirect(302, '/login');
 	} else {
-		let adventures: Location[] = [];
+		let recent_trails: Location[] = [];
 
-		let initialFetch = await event.fetch(`${serverEndpoint}/api/locations/`, {
-			headers: {
-				Cookie: `sessionid=${event.cookies.get('sessionid')}`
-			},
-			credentials: 'include'
-		});
+		// Fetch recent trails (6 for dashboard display)
+		let initialFetch = await event.fetch(
+			`${serverEndpoint}/api/locations/?ordering=-created_at&limit=6`,
+			{
+				headers: {
+					Cookie: `sessionid=${event.cookies.get('sessionid')}`
+				},
+				credentials: 'include'
+			}
+		);
 
 		let stats = null;
 
+		// Fetch trekking stats
 		let res = await event.fetch(
 			`${serverEndpoint}/api/stats/counts/${event.locals.user.username}/`,
 			{
@@ -37,18 +42,16 @@ export const load = (async (event) => {
 		if (!initialFetch.ok) {
 			let error_message = await initialFetch.json();
 			console.error(error_message);
-			console.error('Failed to fetch visited adventures');
+			console.error('Failed to fetch recent trails');
 			return redirect(302, '/login');
 		} else {
 			let res = await initialFetch.json();
-			let visited = res.results as Location[];
-			// only get the first 3 adventures or less if there are less than 3
-			adventures = visited.slice(0, 3);
+			recent_trails = res.results as Location[];
 		}
 
 		return {
 			props: {
-				adventures,
+				adventures: recent_trails, // Keep as 'adventures' for backward compatibility
 				stats
 			}
 		};

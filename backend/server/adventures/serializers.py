@@ -198,7 +198,13 @@ class VisitSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Visit
-        fields = ['id', 'start_date', 'end_date', 'timezone', 'notes', 'activities','location', 'created_at', 'updated_at']
+        fields = [
+            'id', 'start_date', 'end_date', 'timezone', 'notes', 'activities', 'location',
+            # Trek log fields
+            'weather_conditions', 'trail_conditions', 'snow_level', 'companions',
+            'completed', 'abandoned_reason', 'public_report',
+            'created_at', 'updated_at'
+        ]
         read_only_fields = ['id', 'created_at', 'updated_at']
 
     def create(self, validated_data):
@@ -225,9 +231,13 @@ class LocationSerializer(CustomModelSerializer):
     class Meta:
         model = Location
         fields = [
-            'id', 'name', 'description', 'rating', 'tags', 'location', 
-            'is_public', 'collections', 'created_at', 'updated_at', 'images', 'link', 'longitude', 
-            'latitude', 'visits', 'is_visited', 'category', 'attachments', 'user', 'city', 'country', 'region', 'trails'
+            'id', 'name', 'description', 'rating', 'tags', 'location',
+            'is_public', 'collections', 'created_at', 'updated_at', 'images', 'link', 'longitude',
+            'latitude', 'visits', 'is_visited', 'category', 'attachments', 'user', 'city', 'country', 'region', 'trails',
+            # Trekking fields
+            'elevation', 'difficulty_level', 'terrain_type', 'point_type',
+            'has_mobile_coverage', 'is_emergency_point', 'water_available',
+            'permits_required', 'permit_info', 'best_season_start', 'best_season_end'
         ]
         read_only_fields = ['id', 'created_at', 'updated_at', 'user', 'is_visited']
 
@@ -591,7 +601,14 @@ class CollectionSerializer(CustomModelSerializer):
 
     class Meta:
         model = Collection
-        fields = ['id', 'description', 'user', 'name', 'is_public', 'locations', 'created_at', 'start_date', 'end_date', 'transportations', 'notes', 'updated_at', 'checklists', 'is_archived', 'shared_with', 'link', 'lodging']
+        fields = [
+            'id', 'description', 'user', 'name', 'is_public', 'locations', 'created_at',
+            'start_date', 'end_date', 'transportations', 'notes', 'updated_at', 'checklists',
+            'is_archived', 'shared_with', 'link', 'lodging',
+            # Trekking route fields
+            'route_type', 'total_distance', 'total_elevation_gain', 'total_elevation_loss',
+            'estimated_duration', 'difficulty_level', 'max_elevation', 'min_elevation', 'technical_grade'
+        ]
         read_only_fields = ['id', 'created_at', 'updated_at', 'user', 'shared_with']
 
     def get_locations(self, obj):

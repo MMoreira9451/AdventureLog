@@ -1127,3 +1127,71 @@ export function getActivityIcon(activityType: string) {
 	const activity = SPORT_TYPE_CHOICES.find((a) => a.key === activityType);
 	return activity ? activity.icon : '🏅'; // Default medal if not found
 }
+
+// Trekking-specific constants and utilities
+
+export const POINT_TYPE_ICONS = {
+	summit: '🏔️',
+	viewpoint: '👁️',
+	refuge: '🏠',
+	campsite: '⛺',
+	water_source: '💧',
+	pass: '🚶',
+	trailhead: '🥾',
+	emergency_shelter: '🆘',
+	waypoint: '📍',
+	other: '📌'
+} as const;
+
+export const ROUTE_TYPE_ICONS = {
+	circular: '🔄',
+	linear: '↔️',
+	traverse: '➡️',
+	multi_day: '🏕️'
+} as const;
+
+export const DIFFICULTY_COLORS = {
+	easy: 'success',
+	moderate: 'info',
+	hard: 'warning',
+	very_hard: 'error',
+	extreme: 'error'
+} as const;
+
+export function formatElevation(
+	meters: number | null | undefined,
+	system: 'metric' | 'imperial'
+): string {
+	if (!meters && meters !== 0) return 'N/A';
+	if (system === 'imperial') {
+		return `${Math.round(meters * 3.28084)} ft`;
+	}
+	return `${Math.round(meters)} m`;
+}
+
+export function getDifficultyBadgeClass(difficulty: string): string {
+	const colorMap = {
+		easy: 'badge-success',
+		moderate: 'badge-info',
+		hard: 'badge-warning',
+		very_hard: 'badge-error',
+		extreme: 'badge-error'
+	};
+	return colorMap[difficulty as keyof typeof colorMap] || 'badge-ghost';
+}
+
+export function formatDuration(durationString: string | null | undefined): string {
+	if (!durationString) return 'N/A';
+
+	// Parse ISO 8601 duration format (e.g., "PT5H30M")
+	const match = durationString.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+	if (!match) return durationString;
+
+	const hours = parseInt(match[1] || '0');
+	const minutes = parseInt(match[2] || '0');
+
+	if (hours > 0) {
+		return minutes > 0 ? `${hours}h ${minutes}m` : `${hours}h`;
+	}
+	return `${minutes}m`;
+}

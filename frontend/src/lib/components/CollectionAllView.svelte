@@ -1,8 +1,6 @@
 <script lang="ts">
 	import type {
 		Location,
-		Transportation,
-		Lodging,
 		Note,
 		Checklist,
 		User,
@@ -15,8 +13,6 @@
 
 	// Icons
 	import Adventures from '~icons/mdi/map-marker-path';
-	import TransportationIcon from '~icons/mdi/car';
-	import Hotel from '~icons/mdi/hotel';
 	import NoteIcon from '~icons/mdi/note-text';
 	import ChecklistIcon from '~icons/mdi/check-box-outline';
 	import Search from '~icons/mdi/magnify';
@@ -25,15 +21,11 @@
 
 	// Component imports
 	import LocationCard from './LocationCard.svelte';
-	import TransportationCard from './TransportationCard.svelte';
-	import LodgingCard from './LodgingCard.svelte';
 	import NoteCard from './NoteCard.svelte';
 	import ChecklistCard from './ChecklistCard.svelte';
 
 	// Props
 	export let adventures: Location[] = [];
-	export let transportations: Transportation[] = [];
-	export let lodging: Lodging[] = [];
 	export let notes: Note[] = [];
 	export let checklists: Checklist[] = [];
 	export let user: User | null;
@@ -46,8 +38,6 @@
 
 	// Filtered arrays
 	let filteredAdventures: Location[] = [];
-	let filteredTransportations: Transportation[] = [];
-	let filteredLodging: Lodging[] = [];
 	let filteredNotes: Note[] = [];
 	let filteredChecklists: Checklist[] = [];
 
@@ -120,39 +110,6 @@
 	}
 
 	$: {
-		// Filter transportations
-		let filtered = transportations;
-		if (searchQuery !== '') {
-			filtered = filtered.filter((transport) => {
-				const nameMatch =
-					transport.name?.toLowerCase().includes(searchQuery.toLowerCase()) || false;
-				const fromMatch =
-					transport.from_location?.toLowerCase().includes(searchQuery.toLowerCase()) || false;
-				const toMatch =
-					transport.to_location?.toLowerCase().includes(searchQuery.toLowerCase()) || false;
-				return nameMatch || fromMatch || toMatch;
-			});
-		}
-
-		filteredTransportations = sortItems(filtered, sortOption);
-	}
-
-	$: {
-		// Filter lodging
-		let filtered = lodging;
-		if (searchQuery !== '') {
-			filtered = filtered.filter((hotel) => {
-				const nameMatch = hotel.name?.toLowerCase().includes(searchQuery.toLowerCase()) || false;
-				const locationMatch =
-					hotel.location?.toLowerCase().includes(searchQuery.toLowerCase()) || false;
-				return nameMatch || locationMatch;
-			});
-		}
-
-		filteredLodging = sortItems(filtered, sortOption);
-	}
-
-	$: {
 		// Filter notes
 		let filtered = notes;
 		if (searchQuery !== '') {
@@ -184,8 +141,6 @@
 	// Calculate total items
 	$: totalItems =
 		filteredAdventures.length +
-		filteredTransportations.length +
-		filteredLodging.length +
 		filteredNotes.length +
 		filteredChecklists.length;
 
@@ -196,22 +151,6 @@
 
 	function handleDeleteAdventure(event: { detail: any }) {
 		dispatch('deleteAdventure', event.detail);
-	}
-
-	function handleEditTransportation(event: { detail: any }) {
-		dispatch('editTransportation', event.detail);
-	}
-
-	function handleDeleteTransportation(event: { detail: any }) {
-		dispatch('deleteTransportation', event.detail);
-	}
-
-	function handleEditLodging(event: { detail: any }) {
-		dispatch('editLodging', event.detail);
-	}
-
-	function handleDeleteLodging(event: { detail: any }) {
-		dispatch('deleteLodging', event.detail);
 	}
 
 	function handleEditNote(event: { detail: any }) {
@@ -258,14 +197,6 @@
 				<div class="stat py-2 px-3">
 					<div class="stat-title text-xs">{$t('locations.locations')}</div>
 					<div class="stat-value text-sm text-info">{adventures.length}</div>
-				</div>
-				<div class="stat py-2 px-3">
-					<div class="stat-title text-xs">{$t('adventures.transportations')}</div>
-					<div class="stat-value text-sm text-warning">{transportations.length}</div>
-				</div>
-				<div class="stat py-2 px-3">
-					<div class="stat-title text-xs">{$t('adventures.lodging')}</div>
-					<div class="stat-value text-sm text-success">{lodging.length}</div>
 				</div>
 			</div>
 		</div>
@@ -383,24 +314,6 @@
 					{$t('locations.locations')}
 				</button>
 				<button
-					class="tab tab-sm gap-2 {filterOption === 'transportation'
-						? 'tab-active'
-						: ''} whitespace-nowrap"
-					on:click={() => (filterOption = 'transportation')}
-				>
-					<TransportationIcon class="w-3 h-3" />
-					{$t('adventures.transportations')}
-				</button>
-				<button
-					class="tab tab-sm gap-2 {filterOption === 'lodging'
-						? 'tab-active'
-						: ''} whitespace-nowrap"
-					on:click={() => (filterOption = 'lodging')}
-				>
-					<Hotel class="w-3 h-3" />
-					{$t('adventures.lodging')}
-				</button>
-				<button
 					class="tab tab-sm gap-2 {filterOption === 'notes' ? 'tab-active' : ''} whitespace-nowrap"
 					on:click={() => (filterOption = 'notes')}
 				>
@@ -437,52 +350,6 @@
 					on:edit={handleEditAdventure}
 					on:delete={handleDeleteAdventure}
 					{adventure}
-					{collection}
-				/>
-			{/each}
-		</div>
-	</div>
-{/if}
-
-<!-- Transportation Section -->
-{#if (filterOption === 'all' || filterOption === 'transportation') && filteredTransportations.length > 0}
-	<div class="mb-8">
-		<div class="flex items-center justify-between mx-4 mb-4">
-			<h1 class="text-3xl font-bold bg-clip-text text-primary">
-				{$t('adventures.transportations')}
-			</h1>
-			<div class="badge badge-warning badge-lg">{filteredTransportations.length}</div>
-		</div>
-		<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mx-4">
-			{#each filteredTransportations as transportation}
-				<TransportationCard
-					{transportation}
-					{user}
-					on:delete={handleDeleteTransportation}
-					on:edit={handleEditTransportation}
-					{collection}
-				/>
-			{/each}
-		</div>
-	</div>
-{/if}
-
-<!-- Lodging Section -->
-{#if (filterOption === 'all' || filterOption === 'lodging') && filteredLodging.length > 0}
-	<div class="mb-8">
-		<div class="flex items-center justify-between mx-4 mb-4">
-			<h1 class="text-3xl font-bold bg-clip-text text-primary">
-				{$t('adventures.lodging')}
-			</h1>
-			<div class="badge badge-success badge-lg">{filteredLodging.length}</div>
-		</div>
-		<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mx-4">
-			{#each filteredLodging as hotel}
-				<LodgingCard
-					lodging={hotel}
-					{user}
-					on:delete={handleDeleteLodging}
-					on:edit={handleEditLodging}
 					{collection}
 				/>
 			{/each}

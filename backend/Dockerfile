@@ -60,7 +60,9 @@ COPY ./server /code/
 COPY ./nginx.conf /etc/nginx/nginx.conf
 COPY ./supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY ./entrypoint.sh /code/entrypoint.sh
-RUN chmod +x /code/entrypoint.sh \
+# Convert entrypoint.sh line endings from Windows to Unix and make executable
+RUN sed -i 's/\r$//' /code/entrypoint.sh \
+    && chmod +x /code/entrypoint.sh \
     && mkdir -p /code/static /code/media
 
 # Collect static files

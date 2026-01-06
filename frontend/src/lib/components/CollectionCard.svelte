@@ -12,6 +12,7 @@
 	import type { Location, Collection, User, SlimCollection, ContentImage } from '$lib/types';
 	import { addToast } from '$lib/toasts';
 	import { t } from 'svelte-i18n';
+	import { ROUTE_TYPE_ICONS, formatDuration } from '$lib/index';
 
 	import Plus from '~icons/mdi/plus';
 	import Minus from '~icons/mdi/minus';
@@ -153,6 +154,41 @@
 				</p>
 			{/if}
 		</div>
+
+		<!-- Route Metrics -->
+		{#if 'total_distance' in collection || 'total_elevation_gain' in collection || 'estimated_duration' in collection || 'route_type' in collection}
+			<div class="stats stats-horizontal shadow-sm bg-base-200 w-full text-xs">
+				{#if collection.total_distance}
+					<div class="stat p-3">
+						<div class="stat-title text-xs">{$t('route.distance')}</div>
+						<div class="stat-value text-base">{collection.total_distance.toFixed(1)} km</div>
+					</div>
+				{/if}
+
+				{#if collection.total_elevation_gain}
+					<div class="stat p-3">
+						<div class="stat-title text-xs">{$t('route.elevation_gain')}</div>
+						<div class="stat-value text-base">{Math.round(collection.total_elevation_gain)} m</div>
+					</div>
+				{/if}
+
+				{#if collection.estimated_duration}
+					<div class="stat p-3">
+						<div class="stat-title text-xs">{$t('route.duration')}</div>
+						<div class="stat-value text-base">{formatDuration(collection.estimated_duration)}</div>
+					</div>
+				{/if}
+
+				{#if collection.route_type}
+					<div class="stat p-3">
+						<div class="stat-title text-xs">{$t('route.type')}</div>
+						<div class="stat-value text-base">
+							{ROUTE_TYPE_ICONS[collection.route_type]}
+						</div>
+					</div>
+				{/if}
+			</div>
+		{/if}
 
 		<!-- Actions -->
 		<div class="pt-4 border-t border-base-300">

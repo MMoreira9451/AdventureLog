@@ -128,6 +128,16 @@ class Visit(models.Model):
     end_date = models.DateTimeField(null=True, blank=True)
     timezone = models.CharField(max_length=50, choices=[(tz, tz) for tz in TIMEZONES], null=True, blank=True)
     notes = models.TextField(blank=True, null=True)
+
+    # Trek log fields
+    weather_conditions = models.TextField(null=True, blank=True, help_text="Weather conditions during the trek")
+    trail_conditions = models.TextField(null=True, blank=True, help_text="Trail conditions (muddy, snow-covered, etc.)")
+    snow_level = models.FloatField(null=True, blank=True, help_text="Snow level in meters elevation")
+    companions = models.IntegerField(null=True, blank=True, help_text="Number of companions")
+    completed = models.BooleanField(default=True, help_text="Whether the trek was completed")
+    abandoned_reason = models.TextField(null=True, blank=True, help_text="Reason if trek was abandoned")
+    public_report = models.BooleanField(default=False, help_text="Share as community trail report")
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -166,6 +176,46 @@ class Location(models.Model):
     city = models.ForeignKey(City, on_delete=models.SET_NULL, blank=True, null=True)
     region = models.ForeignKey(Region, on_delete=models.SET_NULL, blank=True, null=True)
     country = models.ForeignKey(Country, on_delete=models.SET_NULL, blank=True, null=True)
+
+    # Trekking-specific fields
+    elevation = models.FloatField(null=True, blank=True, help_text="Elevation in meters")
+    difficulty_level = models.CharField(
+        max_length=50,
+        choices=[
+            ('easy', 'Easy'),
+            ('moderate', 'Moderate'),
+            ('hard', 'Hard'),
+            ('very_hard', 'Very Hard'),
+            ('extreme', 'Extreme')
+        ],
+        null=True,
+        blank=True
+    )
+    terrain_type = ArrayField(models.CharField(max_length=100), blank=True, null=True, help_text="Types of terrain: trail, scree, rock, snow, ice, etc.")
+    point_type = models.CharField(
+        max_length=50,
+        choices=[
+            ('summit', 'Summit/Peak'),
+            ('viewpoint', 'Viewpoint'),
+            ('refuge', 'Refuge/Hut'),
+            ('campsite', 'Campsite'),
+            ('water_source', 'Water Source'),
+            ('pass', 'Mountain Pass'),
+            ('trailhead', 'Trailhead'),
+            ('emergency_shelter', 'Emergency Shelter'),
+            ('waypoint', 'General Waypoint'),
+            ('other', 'Other')
+        ],
+        default='waypoint'
+    )
+    has_mobile_coverage = models.BooleanField(null=True, blank=True)
+    is_emergency_point = models.BooleanField(default=False)
+    water_available = models.BooleanField(null=True, blank=True)
+    permits_required = models.BooleanField(default=False)
+    permit_info = models.TextField(blank=True, null=True)
+    best_season_start = models.IntegerField(null=True, blank=True, help_text="Best season start month (1-12)")
+    best_season_end = models.IntegerField(null=True, blank=True, help_text="Best season end month (1-12)")
+
     collections = models.ManyToManyField('Collection', blank=True, related_name='locations')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -286,6 +336,37 @@ class Collection(models.Model):
     is_archived = models.BooleanField(default=False)
     shared_with = models.ManyToManyField(User, related_name='shared_with', blank=True)
     link = models.URLField(blank=True, null=True, max_length=2083)
+
+    # Trekking route fields
+    route_type = models.CharField(
+        max_length=50,
+        choices=[
+            ('circular', 'Circular Loop'),
+            ('linear', 'Linear/Out and Back'),
+            ('traverse', 'Traverse/Point to Point'),
+            ('multi_day', 'Multi-Day Trek')
+        ],
+        default='linear'
+    )
+    total_distance = models.FloatField(null=True, blank=True, help_text="Total route distance in kilometers")
+    total_elevation_gain = models.FloatField(null=True, blank=True, help_text="Total elevation gain in meters")
+    total_elevation_loss = models.FloatField(null=True, blank=True, help_text="Total elevation loss in meters")
+    estimated_duration = models.DurationField(null=True, blank=True, help_text="Estimated duration for the route")
+    difficulty_level = models.CharField(
+        max_length=50,
+        choices=[
+            ('easy', 'Easy'),
+            ('moderate', 'Moderate'),
+            ('hard', 'Hard'),
+            ('very_hard', 'Very Hard'),
+            ('extreme', 'Extreme')
+        ],
+        null=True,
+        blank=True
+    )
+    max_elevation = models.FloatField(null=True, blank=True, help_text="Maximum elevation in meters")
+    min_elevation = models.FloatField(null=True, blank=True, help_text="Minimum elevation in meters")
+    technical_grade = models.CharField(max_length=50, null=True, blank=True, help_text="Technical climbing grade if applicable")
 
     # if connected locations are private and collection is public, raise an error
     def clean(self):

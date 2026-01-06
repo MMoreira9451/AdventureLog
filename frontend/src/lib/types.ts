@@ -46,6 +46,18 @@ export type Location = {
 	region?: Region | null;
 	country?: Country | null;
 	trails: Trail[];
+	// Trekking-specific fields
+	elevation?: number | null;
+	difficulty_level?: 'easy' | 'moderate' | 'hard' | 'very_hard' | 'extreme' | null;
+	terrain_type?: string[] | null;
+	point_type: 'summit' | 'viewpoint' | 'refuge' | 'campsite' | 'water_source' | 'pass' | 'trailhead' | 'emergency_shelter' | 'waypoint' | 'other';
+	has_mobile_coverage?: boolean | null;
+	is_emergency_point: boolean;
+	water_available?: boolean | null;
+	permits_required: boolean;
+	permit_info?: string | null;
+	best_season_start?: number | null;
+	best_season_end?: number | null;
 };
 
 export type AdditionalLocation = Location & {
@@ -135,6 +147,16 @@ export type Collection = {
 	is_archived?: boolean;
 	shared_with: string[] | undefined;
 	link?: string | null;
+	// Trekking route fields
+	route_type: 'circular' | 'linear' | 'traverse' | 'multi_day';
+	total_distance?: number | null;
+	total_elevation_gain?: number | null;
+	total_elevation_loss?: number | null;
+	estimated_duration?: string | null;
+	difficulty_level?: 'easy' | 'moderate' | 'hard' | 'very_hard' | 'extreme' | null;
+	max_elevation?: number | null;
+	min_elevation?: number | null;
+	technical_grade?: string | null;
 };
 
 export type SlimCollection = {
@@ -440,6 +462,14 @@ export type Visit = {
 	location: string;
 	created_at: string;
 	updated_at: string;
+	// Trek log fields
+	weather_conditions?: string | null;
+	trail_conditions?: string | null;
+	snow_level?: number | null;
+	companions?: number | null;
+	completed: boolean;
+	abandoned_reason?: string | null;
+	public_report: boolean;
 };
 
 export type TransportationVisit = {
@@ -490,4 +520,31 @@ export type Pin = {
 	longitude: string;
 	is_visited?: boolean;
 	category: Category | null;
+};
+
+export type TrekkingStats = {
+	total_trails: number;
+	trails_hiked: number;
+	summits_reached: number;
+	routes_completed: number;
+	total_routes: number;
+	total_km_hiked: number;
+	total_elevation_gain: number;
+	total_hiking_hours: number;
+	total_hikes: number;
+	avg_hike_distance_km: number;
+	longest_hike_km: number;
+	avg_elevation_gain: number;
+	max_elevation_gain: number;
+	difficulty_breakdown: Record<string, number>;
+	monthly_stats: Array<{
+		month: string;
+		count: number;
+		distance: number;
+		elevation: number;
+	}>;
+	// Legacy fields maintained for backward compatibility
+	visited_country_count?: number;
+	visited_region_count?: number;
+	visited_city_count?: number;
 };

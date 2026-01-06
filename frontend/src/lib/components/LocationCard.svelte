@@ -23,6 +23,7 @@
 	import Eye from '~icons/mdi/eye';
 	import EyeOff from '~icons/mdi/eye-off';
 	import { isEntityOutsideCollectionDateRange } from '$lib/dateUtils';
+	import { POINT_TYPE_ICONS, formatElevation, getDifficultyBadgeClass } from '$lib/index';
 
 	export let type: string | null = null;
 	export let user: User | null;
@@ -291,6 +292,40 @@
 					<span class="text-sm text-base-content/60">({adventure.rating}/5)</span>
 				</div>
 			{/if}
+
+			<!-- Trekking Badges -->
+			<div class="flex gap-2 flex-wrap">
+				{#if adventure.point_type && adventure.point_type !== 'waypoint'}
+					<span class="badge badge-sm badge-ghost">
+						{POINT_TYPE_ICONS[adventure.point_type]}
+						{$t(`point_types.${adventure.point_type}`)}
+					</span>
+				{/if}
+
+				{#if adventure.difficulty_level}
+					<span class="badge badge-sm {getDifficultyBadgeClass(adventure.difficulty_level)}">
+						{$t(`difficulty.${adventure.difficulty_level}`)}
+					</span>
+				{/if}
+
+				{#if adventure.elevation}
+					<span class="badge badge-sm badge-ghost">
+						📏 {formatElevation(adventure.elevation, user?.measurement_system || 'metric')}
+					</span>
+				{/if}
+
+				{#if adventure.water_available}
+					<span class="badge badge-sm badge-info">💧 {$t('trail.water')}</span>
+				{/if}
+
+				{#if adventure.has_mobile_coverage === false}
+					<span class="badge badge-sm badge-warning">📵 {$t('trail.no_signal')}</span>
+				{/if}
+
+				{#if adventure.permits_required}
+					<span class="badge badge-sm badge-warning">📝 {$t('trail.permit')}</span>
+				{/if}
+			</div>
 		</div>
 
 		<!-- Stats Section -->

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Location, Checklist, Collection, Lodging, Note, Transportation } from '$lib/types';
+	import type { Location, Checklist, Collection, Note } from '$lib/types';
 	import { onMount, onDestroy } from 'svelte';
 	import type { PageData } from './$types';
 	import { marked } from 'marked'; // Import the markdown parser
@@ -18,7 +18,6 @@
 	import LocationCard from '$lib/components/LocationCard.svelte';
 	import AdventureLink from '$lib/components/LocationLink.svelte';
 	import { MapLibre, Marker, Popup, LineLayer, GeoJSON } from 'svelte-maplibre';
-	import TransportationCard from '$lib/components/TransportationCard.svelte';
 	import NoteCard from '$lib/components/NoteCard.svelte';
 	import NoteModal from '$lib/components/NoteModal.svelte';
 
@@ -27,11 +26,8 @@
 	import {
 		groupLocationsByDate,
 		groupNotesByDate,
-		groupTransportationsByDate,
 		groupChecklistsByDate,
 		osmTagToEmoji,
-		groupLodgingByDate,
-		LODGING_TYPES_ICONS,
 		getBasemapUrl,
 		isAllDay,
 		getActivityColor
@@ -40,11 +36,8 @@
 
 	import ChecklistCard from '$lib/components/ChecklistCard.svelte';
 	import ChecklistModal from '$lib/components/ChecklistModal.svelte';
-	import TransportationModal from '$lib/components/TransportationModal.svelte';
 	import CardCarousel from '$lib/components/CardCarousel.svelte';
 	import { goto } from '$app/navigation';
-	import LodgingModal from '$lib/components/LodgingModal.svelte';
-	import LodgingCard from '$lib/components/LodgingCard.svelte';
 	import CollectionAllView from '$lib/components/CollectionAllView.svelte';
 	import NewLocationModal from '$lib/components/NewLocationModal.svelte';
 
@@ -54,14 +47,6 @@
 	const renderMarkdown = (markdown: string) => {
 		return marked(markdown);
 	};
-
-	function getLodgingIcon(type: string) {
-		if (type in LODGING_TYPES_ICONS) {
-			return LODGING_TYPES_ICONS[type as keyof typeof LODGING_TYPES_ICONS];
-		} else {
-			return '🏨';
-		}
-	}
 
 	let collection: Collection;
 
@@ -160,82 +145,6 @@
 			});
 		}
 
-		if (transportations) {
-			dates = dates.concat(
-				transportations
-					.filter((i) => i.date)
-					.map((transportation) => ({
-						id: transportation.id,
-						start: transportation.date || '', // Ensure it's a string
-						end: transportation.end_date || transportation.date || '', // Ensure it's a string
-						title: transportation.name + (transportation.type ? ` (${transportation.type})` : ''),
-						backgroundColor: '#10b981'
-					}))
-			);
-		}
-
-		if (lodging) {
-			dates = dates.concat(
-				lodging
-					.filter((i) => i.check_in)
-					.map((lodging) => {
-						const checkIn = lodging.check_in;
-						const checkOut = lodging.check_out || lodging.check_in;
-						if (!checkIn) return null;
-
-						const isAlldayLodging: boolean = isAllDay(checkIn as string);
-
-						let startDate: string;
-						let endDate: string;
-
-						if (isAlldayLodging) {
-							// For all-day, use date part only, no timezone conversion
-							startDate = (checkIn as string).split('T')[0];
-
-							const endDateObj = new Date(checkOut as string);
-							endDateObj.setDate(endDateObj.getDate());
-							endDate = endDateObj.toISOString().split('T')[0];
-
-							return {
-								id: lodging.id,
-								start: startDate,
-								end: endDate,
-								title: `${getLodgingIcon(lodging.type)} ${lodging.name}`,
-								backgroundColor: '#f59e0b'
-							};
-						} else {
-							// Only use timezone if not all-day
-							const lodgingTimezone = lodging.timezone || userTimezone;
-							const checkInDateTime = new Date(checkIn as string);
-							const checkOutDateTime = new Date(checkOut as string);
-
-							startDate = new Intl.DateTimeFormat('sv-SE', {
-								timeZone: lodgingTimezone,
-								year: 'numeric',
-								month: '2-digit',
-								day: '2-digit'
-							}).format(checkInDateTime);
-
-							endDate = new Intl.DateTimeFormat('sv-SE', {
-								timeZone: lodgingTimezone,
-								year: 'numeric',
-								month: '2-digit',
-								day: '2-digit'
-							}).format(checkOutDateTime);
-
-							return {
-								id: lodging.id,
-								start: startDate,
-								end: endDate,
-								title: lodging.name,
-								backgroundColor: '#f59e0b'
-							};
-						}
-					})
-					.filter((item) => item !== null)
-			);
-		}
-
 		// Update `options.events` when `dates` changes
 		options = { ...options, events: dates };
 	}
@@ -250,7 +159,7 @@
 	// Function to create GeoJSON line data from ordered items
 	function createLineData(
 		items: Array<{
-			item: Location | Transportation | Lodging | Note | Checklist;
+			item: Location | Note | Checklist;
 			start: string;
 			end: string;
 		}>
@@ -263,21 +172,8 @@
 		for (const orderItem of items) {
 			const item = orderItem.item;
 
-			if (
-				'origin_longitude' in item &&
-				'origin_latitude' in item &&
-				'destination_longitude' in item &&
-				'destination_latitude' in item &&
-				item.origin_longitude &&
-				item.origin_latitude &&
-				item.destination_longitude &&
-				item.destination_latitude
-			) {
-				// For Transportation, add both origin and destination points
-				coordinates.push([item.origin_longitude, item.origin_latitude]);
-				coordinates.push([item.destination_longitude, item.destination_latitude]);
-			} else if ('longitude' in item && 'latitude' in item && item.longitude && item.latitude) {
-				// Handle Adventure and Lodging types
+			if ('longitude' in item && 'latitude' in item && item.longitude && item.latitude) {
+				// Handle Location types
 				coordinates.push([item.longitude, item.latitude]);
 			}
 		}
@@ -303,39 +199,14 @@
 	let numVisited: number = 0;
 	let numAdventures: number = 0;
 
-	let transportations: Transportation[] = [];
-	let lodging: Lodging[] = [];
 	let notes: Note[] = [];
 	let checklists: Checklist[] = [];
 
 	let numberOfDays: number = NaN;
 
-	function getTransportationEmoji(type: string): string {
-		switch (type) {
-			case 'car':
-				return '🚗';
-			case 'plane':
-				return '✈️';
-			case 'train':
-				return '🚆';
-			case 'bus':
-				return '🚌';
-			case 'boat':
-				return '⛵';
-			case 'bike':
-				return '🚲';
-			case 'walking':
-				return '🚶';
-			case 'other':
-				return '🚀';
-			default:
-				return '🚀';
-		}
-	}
-
 	let orderedItems: Array<{
-		item: Location | Transportation | Lodging;
-		type: 'adventure' | 'transportation' | 'lodging';
+		item: Location;
+		type: 'adventure';
 		start: string; // ISO date string
 		end: string; // ISO date string
 	}> = [];
@@ -354,32 +225,6 @@
 					type: 'adventure'
 				});
 			});
-		});
-
-		// Add Transportation
-		transportations.forEach((transport) => {
-			if (transport.date) {
-				// Only add if date exists
-				orderedItems.push({
-					item: transport,
-					start: transport.date,
-					end: transport.end_date || transport.date, // Use end_date if available, otherwise use date,
-					type: 'transportation'
-				});
-			}
-		});
-
-		// Add Lodging
-		lodging.forEach((lodging) => {
-			if (lodging.check_in) {
-				// Only add if check_in exists
-				orderedItems.push({
-					item: lodging,
-					start: lodging.check_in,
-					end: lodging.check_out || lodging.check_in, // Use check_out if available, otherwise use check_in,
-					type: 'lodging'
-				});
-			}
 		});
 
 		// Sort all items chronologically by start date
@@ -412,7 +257,6 @@
 
 	let notFound: boolean = false;
 	let isShowingLinkModal: boolean = false;
-	let isShowingTransportationModal: boolean = false;
 	let isShowingChecklistModal: boolean = false;
 
 	function handleHashChange() {
@@ -452,12 +296,6 @@
 			// Update `options.events` when `collection.start_date` changes
 			// @ts-ignore
 			options = { ...options, date: collection.start_date };
-		}
-		if (collection.transportations) {
-			transportations = collection.transportations;
-		}
-		if (collection.lodging) {
-			lodging = collection.lodging;
 		}
 		if (collection.notes) {
 			notes = collection.notes;
@@ -538,9 +376,6 @@
 	}
 
 	let adventureToEdit: Location | null = null;
-	let transportationToEdit: Transportation | null = null;
-	let isShowingLodgingModal: boolean = false;
-	let lodgingToEdit: Lodging | null = null;
 	let isLocationModalOpen: boolean = false;
 	let isNoteModalOpen: boolean = false;
 	let noteToEdit: Note | null;
@@ -573,16 +408,6 @@
 	function editAdventure(event: CustomEvent<Location>) {
 		adventureToEdit = event.detail;
 		isLocationModalOpen = true;
-	}
-
-	function editTransportation(event: CustomEvent<Transportation>) {
-		transportationToEdit = event.detail;
-		isShowingTransportationModal = true;
-	}
-
-	function editLodging(event: CustomEvent<Lodging>) {
-		lodgingToEdit = event.detail;
-		isShowingLodgingModal = true;
 	}
 
 	function saveOrCreateAdventure(event: CustomEvent<Location>) {
@@ -664,38 +489,6 @@
 		loadingRecomendations = false;
 		console.log(recomendationTags);
 	}
-
-	function saveOrCreateTransportation(event: CustomEvent<Transportation>) {
-		if (transportations.find((transportation) => transportation.id === event.detail.id)) {
-			// Update existing transportation
-			transportations = transportations.map((transportation) => {
-				if (transportation.id === event.detail.id) {
-					return event.detail;
-				}
-				return transportation;
-			});
-		} else {
-			// Create new transportation
-			transportations = [event.detail, ...transportations];
-		}
-		isShowingTransportationModal = false;
-	}
-
-	function saveOrCreateLodging(event: CustomEvent<Lodging>) {
-		if (lodging.find((lodging) => lodging.id === event.detail.id)) {
-			// Update existing hotel
-			lodging = lodging.map((lodging) => {
-				if (lodging.id === event.detail.id) {
-					return event.detail;
-				}
-				return lodging;
-			});
-		} else {
-			// Create new lodging
-			lodging = [event.detail, ...lodging];
-		}
-		isShowingLodgingModal = false;
-	}
 </script>
 
 {#if isShowingLinkModal}
@@ -706,24 +499,6 @@
 		}}
 		collectionId={collection.id}
 		on:add={addAdventure}
-	/>
-{/if}
-
-{#if isShowingTransportationModal}
-	<TransportationModal
-		{transportationToEdit}
-		on:close={() => (isShowingTransportationModal = false)}
-		on:save={saveOrCreateTransportation}
-		{collection}
-	/>
-{/if}
-
-{#if isShowingLodgingModal}
-	<LodgingModal
-		{lodgingToEdit}
-		on:close={() => (isShowingLodgingModal = false)}
-		on:save={saveOrCreateLodging}
-		{collection}
 	/>
 {/if}
 
@@ -825,16 +600,6 @@
 						<button
 							class="btn btn-primary"
 							on:click={() => {
-								// Reset the transportation object for creating a new one
-								transportationToEdit = null;
-								isShowingTransportationModal = true;
-							}}
-						>
-							{$t('adventures.transportation')}</button
-						>
-						<button
-							class="btn btn-primary"
-							on:click={() => {
 								isNoteModalOpen = true;
 
 								noteToEdit = null;
@@ -851,16 +616,6 @@
 							}}
 						>
 							{$t('adventures.checklist')}</button
-						>
-						<button
-							class="btn btn-primary"
-							on:click={() => {
-								isShowingLodgingModal = true;
-
-								lodgingToEdit = null;
-							}}
-						>
-							{$t('adventures.lodging')}</button
 						>
 
 						<!-- <button
@@ -985,22 +740,12 @@
 	{#if currentView == 'all'}
 		<CollectionAllView
 			{adventures}
-			{transportations}
-			{lodging}
 			{notes}
 			{checklists}
 			user={data.user}
 			{collection}
 			on:editAdventure={editAdventure}
 			on:deleteAdventure={deleteAdventure}
-			on:editTransportation={editTransportation}
-			on:deleteTransportation={(event) => {
-				transportations = transportations.filter((t) => t.id != event.detail);
-			}}
-			on:editLodging={editLodging}
-			on:deleteLodging={(event) => {
-				lodging = lodging.filter((t) => t.id != event.detail);
-			}}
 			on:editNote={(event) => {
 				noteToEdit = event.detail;
 				isNoteModalOpen = true;
@@ -1074,16 +819,6 @@
 							groupLocationsByDate(adventures, new Date(collection.start_date), numberOfDays + 1)[
 								dateString
 							] || []}
-						{@const dayTransportations =
-							groupTransportationsByDate(
-								transportations,
-								new Date(collection.start_date),
-								numberOfDays + 1
-							)[dateString] || []}
-						{@const dayLodging =
-							groupLodgingByDate(lodging, new Date(collection.start_date), numberOfDays + 1)[
-								dateString
-							] || []}
 						{@const dayNotes =
 							groupNotesByDate(notes, new Date(collection.start_date), numberOfDays + 1)[
 								dateString
@@ -1117,22 +852,6 @@
 											/>
 										{/each}
 									{/if}
-									{#if dayTransportations.length > 0}
-										{#each dayTransportations as transportation}
-											<TransportationCard
-												{transportation}
-												user={data?.user}
-												on:delete={(event) => {
-													transportations = transportations.filter((t) => t.id != event.detail);
-												}}
-												on:edit={(event) => {
-													transportationToEdit = event.detail;
-													isShowingTransportationModal = true;
-												}}
-												{collection}
-											/>
-										{/each}
-									{/if}
 									{#if dayNotes.length > 0}
 										{#each dayNotes as note}
 											<NoteCard
@@ -1145,19 +864,6 @@
 												on:delete={(event) => {
 													notes = notes.filter((n) => n.id != event.detail);
 												}}
-												{collection}
-											/>
-										{/each}
-									{/if}
-									{#if dayLodging.length > 0}
-										{#each dayLodging as hotel}
-											<LodgingCard
-												lodging={hotel}
-												user={data?.user}
-												on:delete={(event) => {
-													lodging = lodging.filter((t) => t.id != event.detail);
-												}}
-												on:edit={editLodging}
 												{collection}
 											/>
 										{/each}
@@ -1180,7 +886,7 @@
 									{/if}
 								</div>
 
-								{#if dayAdventures.length == 0 && dayTransportations.length == 0 && dayNotes.length == 0 && dayChecklists.length == 0 && dayLodging.length == 0}
+								{#if dayAdventures.length == 0 && dayNotes.length == 0 && dayChecklists.length == 0}
 									<p class="text-center text-lg mt-2 italic">{$t('adventures.nothing_planned')}</p>
 								{/if}
 							</div>
@@ -1204,11 +910,6 @@
 										>
 											{#if orderedItem.type === 'adventure' && orderedItem.item && 'category' in orderedItem.item && orderedItem.item.category && 'icon' in orderedItem.item.category}
 												<span class="text-2xl">{orderedItem.item.category.icon}</span>
-											{:else if orderedItem.type === 'transportation' && orderedItem.item && 'origin_latitude' in orderedItem.item}
-												<span class="text-2xl">{getTransportationEmoji(orderedItem.item.type)}</span
-												>
-											{:else if orderedItem.type === 'lodging' && orderedItem.item && 'reservation_number' in orderedItem.item}
-												<span class="text-2xl">{getLodgingIcon(orderedItem.item.type)}</span>
 											{/if}
 										</div>
 										<!-- Card Content -->
@@ -1270,26 +971,6 @@
 													on:edit={editAdventure}
 													on:delete={deleteAdventure}
 													adventure={orderedItem.item}
-													{collection}
-												/>
-											{:else if orderedItem.type === 'transportation' && orderedItem.item && 'origin_latitude' in orderedItem.item}
-												<TransportationCard
-													transportation={orderedItem.item}
-													user={data?.user}
-													on:delete={(event) => {
-														transportations = transportations.filter((t) => t.id != event.detail);
-													}}
-													on:edit={editTransportation}
-													{collection}
-												/>
-											{:else if orderedItem.type === 'lodging' && orderedItem.item && 'reservation_number' in orderedItem.item}
-												<LodgingCard
-													lodging={orderedItem.item}
-													user={data?.user}
-													on:delete={(event) => {
-														lodging = lodging.filter((t) => t.id != event.detail);
-													}}
-													on:edit={editLodging}
 													{collection}
 												/>
 											{/if}
@@ -1422,72 +1103,6 @@
 							/>
 						</GeoJSON>
 					{/if}
-					{#each transportations as transportation}
-						{#if transportation.origin_latitude && transportation.origin_longitude && transportation.destination_latitude && transportation.destination_longitude}
-							<!-- Origin Marker -->
-							<Marker
-								lngLat={{
-									lng: transportation.origin_longitude,
-									lat: transportation.origin_latitude
-								}}
-								class="grid h-8 w-8 place-items-center rounded-full border border-gray-200 
-			bg-green-300 text-black focus:outline-6 focus:outline-black"
-							>
-								<span class="text-xl">
-									{getTransportationEmoji(transportation.type)}
-								</span>
-								<Popup openOn="click" offset={[0, -10]}>
-									<div class="text-lg text-black font-bold">{transportation.name}</div>
-									<p class="font-semibold text-black text-md">
-										{transportation.type}
-									</p>
-								</Popup>
-							</Marker>
-
-							<!-- Destination Marker -->
-							<Marker
-								lngLat={{
-									lng: transportation.destination_longitude,
-									lat: transportation.destination_latitude
-								}}
-								class="grid h-8 w-8 place-items-center rounded-full border border-gray-200 
-			bg-red-300 text-black focus:outline-6 focus:outline-black"
-							>
-								<span class="text-xl">
-									{getTransportationEmoji(transportation.type)}
-								</span>
-								<Popup openOn="click" offset={[0, -10]}>
-									<div class="text-lg text-black font-bold">{transportation.name}</div>
-									<p class="font-semibold text-black text-md">
-										{transportation.type}
-									</p>
-								</Popup>
-							</Marker>
-						{/if}
-					{/each}
-
-					{#each lodging as hotel}
-						{#if hotel.longitude && hotel.latitude}
-							<Marker
-								lngLat={{
-									lng: hotel.longitude,
-									lat: hotel.latitude
-								}}
-								class="grid h-8 w-8 place-items-center rounded-full border border-gray-200 
-								bg-yellow-300 text-black focus:outline-6 focus:outline-black"
-							>
-								<span class="text-xl">
-									{getLodgingIcon(hotel.type)}
-								</span>
-								<Popup openOn="click" offset={[0, -10]}>
-									<div class="text-lg text-black font-bold">{hotel.name}</div>
-									<p class="font-semibold text-black text-md">
-										{hotel.type}
-									</p>
-								</Popup>
-							</Marker>
-						{/if}
-					{/each}
 				</MapLibre>
 			</div>
 		</div>

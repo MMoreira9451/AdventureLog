@@ -1,7 +1,7 @@
 {
   "navbar": {
     "adventures": "Aventuras",
-    "collections": "Colecciones",
+    "collections": "Rutas",
     "worldtravel": "Viajar por el Mundo",
     "map": "Mapa",
     "users": "Usuarios",
@@ -55,22 +55,24 @@
     "view_license": "Ver licencia"
   },
   "home": {
-    "hero_1": "Descubre las Aventuras Más Emocionantes del Mundo",
-    "hero_2": "Descubre y planifica tu próxima aventura con AdventureLog. Explora destinos impresionantes, crea itinerarios personalizados y mantente conectado en todo momento.",
+    "hero_1": "Descubre las Rutas de Trekking Más Emocionantes",
+    "hero_2": "Descubre y planifica tu próxima ruta de trekking con AdventureLog. Explora senderos increíbles, registra tus cumbres y mantén un registro completo de tus aventuras en la montaña.",
     "go_to": "Ir a AdventureLog",
     "key_features": "Características Clave",
-    "desc_1": "Descubre, Planifica y Explora Fácilmente",
-    "desc_2": "AdventureLog está diseñado para simplificar tu viaje, brindándote las herramientas y recursos para planificar, hacer la maleta y recorrer tu próxima aventura inolvidable.",
-    "feature_1": "Registro de Viajes",
-    "feature_1_desc": "Mantén un registro de tus aventuras con un diario de viaje personalizado y comparte tus experiencias con amigos y familiares.",
-    "feature_2": "Planificación de Viajes",
-    "feature_2_desc": "Crea fácilmente itinerarios personalizados y obtén un desglose diario de tu viaje.",
-    "feature_3": "Mapa de Viaje",
-    "feature_3_desc": "Visualiza tus viajes por el mundo con un mapa interactivo y explora nuevos destinos.",
-    "start_your_journey": "Empiece tu viaje",
-    "explore_world": "Explorar el mundo",
-    "latest_travel_experiences": "Tus últimas experiencias de viaje",
-    "of_world": "del mundo"
+    "desc_1": "Registra, Planifica y Explora Fácilmente",
+    "desc_2": "AdventureLog está diseñado para simplificar tu experiencia de trekking, brindándote las herramientas para registrar rutas, planificar ascensos y documentar cada cumbre alcanzada.",
+    "feature_1": "Registro de Rutas",
+    "feature_1_desc": "Mantén un registro detallado de tus rutas de trekking con información de elevación, distancia y dificultad.",
+    "feature_2": "Planificación de Ascensos",
+    "feature_2_desc": "Planifica tus próximas rutas y organiza tus aventuras de montaña con itinerarios detallados.",
+    "feature_3": "Mapa de Senderos",
+    "feature_3_desc": "Visualiza todos tus senderos y cumbres en un mapa interactivo y descubre nuevas rutas.",
+    "start_your_journey": "Comienza tu aventura",
+    "explore_world": "Explorar senderos",
+    "latest_travel_experiences": "Tus últimas rutas de trekking",
+    "of_world": "del mundo",
+    "meta_description": "AdventureLog es una plataforma para registrar tus rutas de trekking y planificar tus aventuras en la montaña.",
+    "page_title": "Inicio | AdventureLog"
   },
   "adventures": {
     "open_details": "Abrir Detalles",
@@ -579,7 +581,9 @@
     "enter_password": "Ingrese su contraseña",
     "enter_username": "Ingrese su nombre de usuario",
     "logging_in": "Iniciar sesión",
-    "totp": "Código de dos factores"
+    "totp": "Código de dos factores",
+    "login_meta": "Inicia sesión en tu cuenta de AdventureLog para comenzar a registrar tus rutas de trekking",
+    "signup_meta": "Regístrate en AdventureLog para explorar senderos y documentar tus aventuras de montaña"
   },
   "users": {
     "no_users_found": "No se encontraron usuarios con perfiles públicos."
@@ -835,26 +839,27 @@
     "try_searching_desc": "Intente buscar aventuras, colecciones, países, regiones, ciudades o usuarios."
   },
   "map": {
-    "add_adventure": "Agregar nueva aventura",
-    "add_adventure_at_marker": "Agregar nueva aventura en Marker",
-    "adventure_map": "Mapa de aventuras",
+    "add_adventure": "Agregar nuevo sendero",
+    "add_adventure_at_marker": "Agregar nuevo sendero en marcador",
+    "adventure_map": "Mapa de Senderos",
     "clear_marker": "Borrar marcador",
     "map_options": "Opciones de mapa",
     "show_visited_regions": "Mostrar regiones visitadas",
     "view_details": "Ver detalles",
-    "adventure_stats": "Estadísticas de aventura",
+    "adventure_stats": "Estadísticas de trekking",
     "completion": "Terminación",
     "display_options": "Opciones de visualización",
     "map_controls": "Controles de mapa",
     "marker_placed_on_map": "Marcador colocado en el mapa",
     "regions": "Regiones",
-    "add_location": "Agregar nueva ubicación",
-    "add_location_at_marker": "Agregar nueva ubicación en el marcador",
-    "location_map": "Mapa de ubicación",
-    "locations_shown": "ubicaciones mostradas",
-    "place_marker_desc_location": "Haga clic en el mapa para colocar un marcador.",
+    "add_location": "Agregar nuevo punto de sendero",
+    "add_location_at_marker": "Agregar nuevo punto en el marcador",
+    "location_map": "Mapa de Senderos",
+    "locations_shown": "puntos mostrados",
+    "place_marker_desc_location": "Haz clic en el mapa para colocar un marcador.",
     "show_activities": "Mostrar actividades",
-    "show_visited_cities": "Ciudades visitadas"
+    "show_visited_cities": "Ciudades visitadas",
+    "page_title": "Mapa de Senderos"
   },
   "share": {
     "no_users_shared": "Ningún usuario compartió con",
@@ -905,19 +910,34 @@
     "location_update_after_refresh": "Las tarjetas de ubicación se actualizarán una vez que actualice la página."
   },
   "dashboard": {
-    "add_some": "¿Por qué no empezar a planificar tu próxima aventura? Puedes agregar una nueva aventura haciendo clic en el botón de abajo.",
+    "add_some": "¿Por qué no empezar a planificar tu próxima ruta? Puedes agregar un nuevo sendero haciendo clic en el botón de abajo.",
     "countries_visited": "Países visitados",
-    "no_recent_adventures": "¿Sin aventuras recientes?",
-    "recent_adventures": "Aventuras recientes",
-    "total_adventures": "Aventuras totales",
+    "no_recent_adventures": "¿Sin senderos recientes?",
+    "recent_adventures": "Senderos recientes",
+    "total_adventures": "Senderos totales",
     "total_visited_regions": "Total de regiones visitadas",
     "welcome_back": "Bienvenido de nuevo",
     "total_visited_cities": "Total de ciudades visitadas",
-    "document_some_adventures": "¡Comience a documentar sus viajes y construya su mapa de aventura personal!",
+    "document_some_adventures": "¡Comienza a documentar tus rutas de trekking y construye tu mapa de aventuras!",
     "view_all": "Ver todo",
-    "welcome_text_1": "Has estado en",
-    "welcome_text_2": "Aventuras hasta ahora",
-    "welcome_text_3": "¡Sigue explorando y documentando tus viajes!"
+    "welcome_text_1": "Has caminado",
+    "welcome_text_2": "kilómetros y alcanzado",
+    "welcome_text_3": "cumbres",
+    "total_distance": "Distancia Total",
+    "elevation_gain": "Desnivel Positivo",
+    "summits_reached": "Cumbres Alcanzadas",
+    "routes_completed": "Rutas Completadas",
+    "recent_trails": "Senderos Recientes",
+    "km_hiked": "kilómetros caminados",
+    "meters_climbed": "metros ascendidos",
+    "peaks_conquered": "picos conquistados",
+    "of_total": "de {total} totales",
+    "routes_by_difficulty": "Rutas por Dificultad",
+    "no_trails_yet": "Aún no hay senderos",
+    "start_trekking_journey": "¡Comienza tu aventura de trekking documentando tu primera ruta!",
+    "start_trekking_today": "¡Comienza tu aventura de trekking hoy!",
+    "latest_trail_points": "Tus últimos puntos de sendero",
+    "meta_description": "Panel de trekking para AdventureLog."
   },
   "immich": {
     "api_key": "Clave API de Immich",
@@ -1003,8 +1023,8 @@
   },
   "locations": {
     "location": "Ubicación",
-    "locations": "Ubicación",
-    "my_locations": "Mis ubicaciones"
+    "locations": "Senderos",
+    "my_locations": "Mis senderos"
   },
   "settings_download_backup": "Descargar copia de seguridad",
   "invites": {
@@ -1039,5 +1059,43 @@
     "connected": "Conectado con éxito a Wanderer",
     "connection_error": "Error conectándose a Wanderer",
     "wanderer_integration_desc": "Conéctese a Wanderer para importar y ver fácilmente sus senderos en ubicaciones"
+  },
+  "point_types": {
+    "summit": "Cumbre/Pico",
+    "viewpoint": "Mirador",
+    "refuge": "Refugio/Cabaña",
+    "campsite": "Zona de acampada",
+    "water_source": "Fuente de agua",
+    "pass": "Paso de montaña",
+    "trailhead": "Inicio del sendero",
+    "emergency_shelter": "Refugio de emergencia",
+    "waypoint": "Punto de referencia",
+    "other": "Otro"
+  },
+  "route_types": {
+    "circular": "Circular",
+    "linear": "Lineal/Ida y vuelta",
+    "traverse": "Travesía",
+    "multi_day": "Ruta de varios días"
+  },
+  "difficulty": {
+    "easy": "Fácil",
+    "moderate": "Moderado",
+    "hard": "Difícil",
+    "very_hard": "Muy difícil",
+    "extreme": "Extremo"
+  },
+  "route": {
+    "distance": "Distancia",
+    "elevation_gain": "Desnivel positivo",
+    "duration": "Duración",
+    "type": "Tipo"
+  },
+  "trail": {
+    "water": "Agua",
+    "no_signal": "Sin señal",
+    "permit": "Permiso",
+    "conditions": "Condiciones del sendero",
+    "safety_info": "Información de seguridad"
   }
 }
