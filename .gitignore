@@ -4,3 +4,4 @@
 .pnpm-store/
 .env
 
+.env.production
