@@ -14,7 +14,12 @@
       "Bash(timeout 25 bash:*)",
       "Bash(docker exec:*)",
       "Bash(del:*)",
-      "Bash(git add .env.production .github/workflows/ docker-compose.prod.yml)"
+      "Bash(git add .env.production .github/workflows/ docker-compose.prod.yml)",
+      "Bash(git rm:*)",
+      "Bash(git add:*)",
+      "Bash(git check-ignore:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)"
     ]
   }
 }
