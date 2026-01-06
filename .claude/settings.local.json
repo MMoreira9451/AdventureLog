@@ -12,7 +12,9 @@
       "Bash(docker run:*)",
       "Bash(timeout 20 bash:*)",
       "Bash(timeout 25 bash:*)",
-      "Bash(docker exec:*)"
+      "Bash(docker exec:*)",
+      "Bash(del:*)",
+      "Bash(git add .env.production .github/workflows/ docker-compose.prod.yml)"
     ]
   }
 }

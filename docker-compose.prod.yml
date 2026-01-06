@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   web:
-    image: ghcr.io/seanmorley15/adventurelog-frontend:latest
+    image: ${GITHUB_USERNAME:-ghcr.io/TU_USUARIO}/adventurelog-trekking-frontend:latest
     container_name: adventurelog-frontend
     restart: unless-stopped
     environment:
@@ -16,7 +16,7 @@ services:
       - adventurelog
 
   server:
-    image: ghcr.io/seanmorley15/adventurelog:latest
+    image: ${GITHUB_USERNAME:-ghcr.io/TU_USUARIO}/adventurelog-trekking-backend:latest
     container_name: adventurelog-backend
     restart: unless-stopped
     environment:
