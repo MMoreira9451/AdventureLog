@@ -1,17 +1,14 @@
 services:
-  # AdventureLog Services
   web:
     #build: ./frontend/
     image: ghcr.io/seanmorley15/adventurelog-frontend:latest
     container_name: adventurelog-frontend
     restart: unless-stopped
     env_file: .env
-    expose:
-      - "3000"
+    ports:
+      - "${FRONTEND_PORT:-8015}:3000"
     depends_on:
       - server
-    networks:
-      - adventurelog-network
 
   db:
     image: postgis/postgis:16-3.5
@@ -20,8 +17,6 @@ services:
     env_file: .env
     volumes:
       - postgres_data:/var/lib/postgresql/data/
-    networks:
-      - adventurelog-network
 
   server:
     #build: ./backend/
@@ -29,36 +24,13 @@ services:
     container_name: adventurelog-backend
     restart: unless-stopped
     env_file: .env
-    expose:
-      - "80"
+    ports:
+      - "${BACKEND_PORT:-8016}:80"
     depends_on:
       - db
     volumes:
       - adventurelog_media:/code/media/
-    networks:
-      - adventurelog-network
-
-  # Nginx Proxy Manager
-  nginx-proxy-manager:
-    image: 'jc21/nginx-proxy-manager:latest'
-    container_name: nginx-proxy-manager
-    restart: unless-stopped
-    ports:
-      - '80:80'      # HTTP
-      - '443:443'    # HTTPS
-      - '81:81'      # Admin UI
-    volumes:
-      - npm_data:/data
-      - npm_letsencrypt:/etc/letsencrypt
-    networks:
-      - adventurelog-network
 
 volumes:
   postgres_data:
   adventurelog_media:
-  npm_data:
-  npm_letsencrypt:
-
-networks:
-  adventurelog-network:
-    driver: bridge

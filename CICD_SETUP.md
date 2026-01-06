@@ -1,195 +1,409 @@
-# Configuración CI/CD para AdventureLog
+# 🔄 CI/CD Automático: GitHub → Imágenes Docker → TrueNAS
 
-## 📋 Flujo de CI/CD
+Esta guía configura un sistema automático donde cualquier cambio en GitHub se refleja automáticamente en TrueNAS.
 
-El flujo automático funciona así:
+## 🎯 Flujo Automático
 
-1. **Push a `main`** → Activa los workflows de build
-2. **Build Backend** → Construye y sube imagen a GHCR
-3. **Build Frontend** → Construye y sube imagen a GHCR
-4. **Deploy** → Se activa automáticamente cuando los builds terminan exitosamente
-5. **Servidor** → Descarga las nuevas imágenes y reinicia los contenedores
-
-## 🔐 Secrets de GitHub Requeridos
-
-Ve a: **Settings** → **Secrets and variables** → **Actions** → **New repository secret**
-
-Agrega los siguientes secrets:
-
-| Secret Name | Descripción | Ejemplo |
-|-------------|-------------|---------|
-| `DEPLOY_HOST` | IP o dominio del servidor | `192.168.4.111` |
-| `DEPLOY_USER` | Usuario SSH del servidor | `root` o `admin` |
-| `DEPLOY_SSH_KEY` | Clave privada SSH (contenido completo) | Ver sección "Generar SSH Key" |
-| `DEPLOY_PATH` | Ruta donde está el proyecto en el servidor | `/root/adventurelog` |
-| `DEPLOY_PORT` | Puerto SSH (opcional, default: 22) | `22` |
-
-## 🔑 Generar SSH Key para Deploy
-
-### En tu máquina local (Mac/Linux):
-
-```bash
-# Generar nueva clave SSH específica para deploy
-ssh-keygen -t ed25519 -C "github-deploy-adventurelog" -f ~/.ssh/github_deploy
-
-# Copiar clave pública al servidor
-ssh-copy-id -i ~/.ssh/github_deploy.pub usuario@192.168.4.111
-
-# Copiar clave PRIVADA para agregarla como secret en GitHub
-cat ~/.ssh/github_deploy
+```
+Haces cambio en código (Git)
+    ↓
+GitHub Actions detecta cambio
+    ↓
+Construye imagen Docker automáticamente
+    ↓
+Sube imagen a GitHub Container Registry
+    ↓
+Watchtower en TrueNAS detecta nueva imagen
+    ↓
+TrueNAS actualiza la app automáticamente
 ```
 
-### Agregar clave privada a GitHub:
+---
 
-1. Copia **TODO** el contenido de `cat ~/.ssh/github_deploy` (incluye `-----BEGIN OPENSSH PRIVATE KEY-----` y `-----END OPENSSH PRIVATE KEY-----`)
-2. Ve a GitHub → Settings → Secrets → New secret
-3. Name: `DEPLOY_SSH_KEY`
-4. Value: Pega todo el contenido de la clave privada
+## 📋 PASO 1: Preparar GitHub Repository
 
-## 📦 Preparar el Servidor
+### 1.1 Crear tu propio fork/repo
 
-### 1. Clonar el repositorio en el servidor
+Si aún usas el repo original de AdventureLog, necesitas crear tu propio repo:
 
-```bash
-ssh usuario@192.168.4.111
+**Opción A: Fork**
+1. Ve a https://github.com/seanmorley15/AdventureLog
+2. Click en **Fork** (arriba a la derecha)
+3. Crea el fork en tu cuenta
 
-# Clonar tu fork
-git clone https://github.com/TU_USUARIO/AdventureLog.git
-cd AdventureLog
-
-# Copiar y configurar .env.production
-cp .env.production.example .env.production
-nano .env.production
-```
-
-### 2. Configurar `.env.production` en el servidor
-
-Edita con tus valores reales:
-
-```env
-GITHUB_USERNAME=ghcr.io/TU_USUARIO_GITHUB
-PUBLIC_URL=https://trekings.ashyweb.win
-CSRF_TRUSTED_ORIGINS=https://trekings.ashyweb.win
-
-POSTGRES_DB=adventurelog
-POSTGRES_USER=adventurelog
-POSTGRES_PASSWORD=TU_PASSWORD_SEGURO_123
-
-DJANGO_SECRET_KEY=clave_secreta_larga_y_aleatoria_generada
-DJANGO_ADMIN_USERNAME=admin
-DJANGO_ADMIN_PASSWORD=TU_PASSWORD_ADMIN_SEGURO
-DJANGO_ADMIN_EMAIL=tu_email@example.com
-```
-
-### 3. Iniciar por primera vez
+**Opción B: Nuevo Repo con tus cambios**
+1. Crea un nuevo repo en GitHub (ej: `adventurelog-trekking`)
+2. Sube tu código modificado:
 
 ```bash
-# Login en GitHub Container Registry (si tu repo es privado)
-echo "TU_GITHUB_TOKEN" | docker login ghcr.io -u TU_USUARIO --password-stdin
+cd C:\Users\mmore\OneDrive\Escritorio\condominio\AdventureLog
 
-# Iniciar servicios
-docker compose -f docker-compose.prod.yml up -d
-
-# Ver logs
-docker compose -f docker-compose.prod.yml logs -f
-```
-
-## 🚀 Uso del CI/CD
-
-### Deploy Automático
-
-Simplemente haz push a `main`:
-
-```bash
+# Inicializa git si no lo has hecho
+git init
 git add .
-git commit -m "Update feature"
-git push origin main
+git commit -m "Transformación a app de trekking en español"
+
+# Conecta con tu repo de GitHub
+git remote add origin https://github.com/TU_USUARIO/adventurelog-trekking.git
+git branch -M main
+git push -u origin main
 ```
 
-El workflow se ejecutará automáticamente:
-1. Build Backend (si hubo cambios en `backend/`)
-2. Build Frontend (si hubo cambios en `frontend/`)
-3. Deploy automático cuando los builds terminen
+### 1.2 Habilitar GitHub Actions
 
-### Deploy Manual
+1. Ve a tu repo en GitHub
+2. Click en **Settings** → **Actions** → **General**
+3. En "Workflow permissions":
+   - ✅ Marca "Read and write permissions"
+   - ✅ Marca "Allow GitHub Actions to create and approve pull requests"
+4. Click **Save**
 
-Si necesitas hacer un deploy sin cambios en el código:
+### 1.3 Habilitar GitHub Container Registry
 
-1. Ve a **Actions** en GitHub
-2. Selecciona **"Deploy to Production Server"**
-3. Click en **"Run workflow"** → **"Run workflow"**
+1. Ve a tu perfil de GitHub → **Settings**
+2. **Developer settings** → **Personal access tokens** → **Tokens (classic)**
+3. **Generate new token (classic)**
+4. Permisos necesarios:
+   - ✅ `write:packages`
+   - ✅ `read:packages`
+   - ✅ `delete:packages`
+5. Copia el token y guárdalo (lo necesitarás después)
 
-## 📊 Monitoreo
+---
 
-### Ver estado del workflow en GitHub
+## 📋 PASO 2: Configurar GitHub Actions
 
-Ve a la pestaña **Actions** en tu repositorio.
+Los archivos ya están creados en `.github/workflows/`:
+- `build-frontend.yml`
+- `build-backend.yml`
 
-### Ver logs en el servidor
+### 2.1 Subir los workflows a GitHub
 
 ```bash
-ssh usuario@192.168.4.111
-cd /ruta/del/proyecto
-docker compose -f docker-compose.prod.yml logs -f web     # Frontend
-docker compose -f docker-compose.prod.yml logs -f server  # Backend
-docker compose -f docker-compose.prod.yml ps              # Estado
+cd C:\Users\mmore\OneDrive\Escritorio\condominio\AdventureLog
+
+git add .github/workflows/
+git commit -m "Add GitHub Actions workflows for Docker builds"
+git push
 ```
 
-## 🔧 Troubleshooting
+### 2.2 Verificar que funcionan
 
-### Error: "Permission denied (publickey)"
+1. Ve a tu repo en GitHub
+2. Click en **Actions** (tab arriba)
+3. Deberías ver 2 workflows corriendo:
+   - "Build Frontend Docker Image"
+   - "Build Backend Docker Image"
+4. Espera ~5-10 minutos a que terminen
 
-La clave SSH no está configurada correctamente:
+### 2.3 Ver las imágenes creadas
 
-```bash
-# En el servidor, verifica que la clave pública esté en authorized_keys
-cat ~/.ssh/authorized_keys | grep "github-deploy-adventurelog"
+1. Ve a tu repo en GitHub
+2. Click en tu nombre de usuario (arriba a la derecha) → **Your profile**
+3. Click en **Packages** (tab)
+4. Deberías ver:
+   - `adventurelog-trekking/frontend`
+   - `adventurelog-trekking/backend`
 
-# Si no está, vuelve a copiarla
-ssh-copy-id -i ~/.ssh/github_deploy.pub usuario@192.168.4.111
+Las URLs serán algo como:
+```
+ghcr.io/TU_USUARIO/adventurelog-trekking/frontend:latest
+ghcr.io/TU_USUARIO/adventurelog-trekking/backend:latest
 ```
 
-### Error: "Cannot pull image"
+---
 
-Login en GHCR no está configurado o token expiró:
+## 📋 PASO 3: Configurar TrueNAS con tus imágenes
 
-```bash
-# En el servidor
-echo "TU_GITHUB_TOKEN" | docker login ghcr.io -u TU_USUARIO --password-stdin
+Ahora actualiza las Custom Apps en TrueNAS para usar TUS imágenes.
+
+### 3.1 Actualizar Frontend App
+
+1. En TrueNAS: **Apps** → **adventurelog-frontend** → **Edit**
+2. Cambia **Image Repository**:
+   ```
+   ghcr.io/TU_USUARIO/adventurelog-trekking/frontend
+   ```
+3. **Image Tag**: `latest`
+4. Click **Save**
+
+### 3.2 Actualizar Backend App
+
+1. En TrueNAS: **Apps** → **adventurelog-backend** → **Edit**
+2. Cambia **Image Repository**:
+   ```
+   ghcr.io/TU_USUARIO/adventurelog-trekking/backend
+   ```
+3. **Image Tag**: `latest`
+4. Click **Save**
+
+TrueNAS descargará tus imágenes personalizadas y reiniciará las apps.
+
+---
+
+## 📋 PASO 4: Configurar Auto-Actualización con Watchtower
+
+Watchtower es un contenedor que monitorea actualizaciones de imágenes y actualiza automáticamente.
+
+### 4.1 Instalar Watchtower en TrueNAS
+
+1. **Apps** → **Discover Apps** → **Custom App**
+
+**Application Name:**
+```
+watchtower
 ```
 
-### Deploy falla pero los builds son exitosos
+**Image Repository:**
+```
+containrrr/watchtower
+```
 
-Verifica que:
-1. El archivo `docker-compose.prod.yml` existe en el servidor
-2. El archivo `.env.production` está configurado correctamente
-3. Los secrets `DEPLOY_PATH` apunta a la ruta correcta
+**Image Tag:**
+```
+latest
+```
 
-## 📝 Notas Importantes
+**Container Args:**
+```
+--interval
+3600
+--cleanup
+```
+(Esto revisa cada hora = 3600 segundos)
 
-- Los volúmenes de Docker (base de datos, media files) se mantienen entre deploys
-- Solo se recrean los contenedores `web` y `server`, NO la base de datos
-- Nginx Proxy Manager mantiene su configuración entre deploys
-- Las imágenes antiguas se limpian automáticamente después del deploy
+**Container Entrypoint:**
+```
+/watchtower
+```
 
-## 🎯 Flujo Completo de Ejemplo
+**Storage - Host Path Volumes:**
+- Host Path: `/var/run/docker.sock`
+- Mount Path: `/var/run/docker.sock`
+- Read Only: ✅ Sí
+
+**Networking:**
+- No necesita puertos
+
+Click **Save**
+
+### 4.2 ¿Qué hace Watchtower?
+
+- Revisa cada hora si hay nuevas versiones de las imágenes
+- Si detecta una actualización:
+  1. Descarga la nueva imagen
+  2. Detiene el contenedor viejo
+  3. Inicia el nuevo contenedor
+  4. Elimina la imagen vieja
+
+**Todo automático, sin downtime.**
+
+---
+
+## 📋 PASO 5: Hacer un Cambio y Verlo en Producción
+
+### 5.1 Hacer un cambio en el código
+
+Por ejemplo, cambiar un texto en el dashboard:
 
 ```bash
-# 1. Hacer cambios en el código
-vim frontend/src/routes/+page.svelte
+# Edita frontend/src/routes/dashboard/+page.svelte
+# Cambia algo visual
 
-# 2. Commit y push
 git add .
-git commit -m "Update homepage design"
-git push origin main
-
-# 3. GitHub Actions automáticamente:
-#    - Construye nueva imagen frontend
-#    - Sube imagen a ghcr.io
-#    - Conecta al servidor por SSH
-#    - Descarga nueva imagen
-#    - Reinicia contenedor frontend
-#    - Verifica que esté corriendo
-
-# 4. ✅ Cambios en producción en ~5 minutos
+git commit -m "Actualizar texto del dashboard"
+git push
 ```
+
+### 5.2 Ver el build automático
+
+1. Ve a GitHub → **Actions**
+2. Verás que se inició "Build Frontend Docker Image"
+3. Espera ~5 minutos a que termine
+
+### 5.3 Watchtower detecta y actualiza
+
+- En la próxima hora, Watchtower detectará la nueva imagen
+- Actualizará automáticamente en TrueNAS
+- Refresh tu navegador en `https://trekking.tudominio.com`
+- ¡Verás los cambios!
+
+### 5.4 Ver logs de Watchtower
+
+En TrueNAS:
+- **Apps** → **watchtower** → **Logs**
+- Verás mensajes como:
+  ```
+  Found new image for adventurelog-frontend
+  Updating container...
+  Successfully updated
+  ```
+
+---
+
+## ⚡ Actualización Manual (Sin Esperar)
+
+Si quieres ver los cambios inmediatamente sin esperar a Watchtower:
+
+### Opción 1: Desde TrueNAS UI
+
+1. **Apps** → **adventurelog-frontend** → **Edit**
+2. No cambies nada, solo click **Save**
+3. TrueNAS descarga la última imagen automáticamente
+
+### Opción 2: Forzar Watchtower
+
+1. **Apps** → **watchtower** → **Stop**
+2. **Apps** → **watchtower** → **Start**
+3. Watchtower revisa inmediatamente
+
+---
+
+## 🎛️ Configuración Avanzada de Watchtower
+
+Para revisar cada 5 minutos en lugar de cada hora:
+
+1. **Apps** → **watchtower** → **Edit**
+2. **Container Args**:
+   ```
+   --interval
+   300
+   --cleanup
+   ```
+3. Click **Save**
+
+Para solo monitorear ciertas apps:
+
+**Container Args:**
+```
+--interval
+3600
+--cleanup
+adventurelog-frontend
+adventurelog-backend
+```
+
+Para recibir notificaciones (ej: email, Slack):
+
+**Container Environment Variables:**
+```
+WATCHTOWER_NOTIFICATIONS=email
+WATCHTOWER_NOTIFICATION_EMAIL_FROM=watchtower@tudominio.com
+WATCHTOWER_NOTIFICATION_EMAIL_TO=tu@email.com
+WATCHTOWER_NOTIFICATION_EMAIL_SERVER=smtp.gmail.com
+WATCHTOWER_NOTIFICATION_EMAIL_SERVER_PORT=587
+WATCHTOWER_NOTIFICATION_EMAIL_SERVER_USER=tu_email@gmail.com
+WATCHTOWER_NOTIFICATION_EMAIL_SERVER_PASSWORD=tu_app_password
+```
+
+---
+
+## 🔒 Imágenes Privadas (Opcional)
+
+Si quieres que tus imágenes sean privadas:
+
+### En GitHub:
+
+1. Ve a tu paquete en GitHub
+2. **Package settings** → **Change visibility**
+3. Selecciona **Private**
+
+### En TrueNAS (para acceder a imágenes privadas):
+
+Necesitas configurar credenciales:
+
+1. **Apps** → **adventurelog-frontend** → **Edit**
+2. Sección **Advanced Settings** → **Image Pull Policy**
+3. Añade credenciales de GitHub:
+   - Registry: `ghcr.io`
+   - Username: Tu usuario de GitHub
+   - Password: Tu Personal Access Token
+
+---
+
+## 📊 Monitoreo del CI/CD
+
+### Ver builds en GitHub
+
+- GitHub → **Actions**
+- Click en cualquier workflow
+- Ve los logs completos del build
+
+### Ver actualizaciones en TrueNAS
+
+- **Apps** → **watchtower** → **Logs**
+- Verás cuándo se actualizó cada contenedor
+
+### Ver versión actual de la imagen
+
+```bash
+# SSH a TrueNAS (opcional)
+docker inspect adventurelog-frontend | grep Image
+```
+
+---
+
+## ✅ Resumen del Sistema Completo
+
+**Desarrollo:**
+```
+1. Editas código en tu PC
+2. git add, commit, push
+3. GitHub Actions construye imagen
+4. Imagen sube a ghcr.io automáticamente
+```
+
+**Producción:**
+```
+1. Watchtower revisa cada hora
+2. Detecta nueva imagen
+3. Actualiza contenedor en TrueNAS
+4. Tus usuarios ven los cambios
+```
+
+**Todo automático, cero downtime, cero configuración manual.**
+
+---
+
+## 🎉 Ventajas de este Sistema
+
+✅ **Push-to-Deploy**: Haces `git push` y en ~1 hora está en producción
+✅ **Rollback fácil**: Si algo falla, Watchtower puede volver a la versión anterior
+✅ **Cero downtime**: Watchtower hace rolling updates
+✅ **Gratis**: GitHub Actions + ghcr.io son totalmente gratis
+✅ **Logs completos**: Ves todo el proceso en GitHub Actions
+✅ **Versionado**: Cada imagen tiene su SHA de git
+
+---
+
+## 🆘 Troubleshooting
+
+### "Workflow failed" en GitHub Actions
+
+- Ve a **Actions** → Click en el workflow fallido
+- Lee el log para ver el error
+- Usualmente es un error de sintaxis en Dockerfile
+
+### Watchtower no actualiza
+
+- Verifica logs: **Apps** → **watchtower** → **Logs**
+- Asegúrate que `/var/run/docker.sock` está montado correctamente
+- Verifica que la imagen tenga tag `latest`
+
+### "Image pull failed" en TrueNAS
+
+- La imagen es privada y necesitas credenciales
+- O el nombre de la imagen está mal escrito
+
+---
+
+## 💡 Próximos Pasos
+
+Ahora que tienes CI/CD configurado, puedes:
+
+1. **Agregar tests automáticos** en GitHub Actions
+2. **Crear ambientes de staging** (otra app en TrueNAS con tag `dev`)
+3. **Notificaciones** cuando haya actualizaciones
+4. **Backups automáticos** antes de cada actualización
+
+¡Tu app de trekking ahora se actualiza sola! 🚀🏔️

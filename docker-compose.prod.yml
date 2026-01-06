@@ -1,48 +1,45 @@
+version: '3.8'
+
 services:
-  # AdventureLog Frontend
   web:
     image: ${GITHUB_USERNAME:-ghcr.io/TU_USUARIO}/adventurelog-trekking-frontend:latest
     container_name: adventurelog-frontend
     restart: unless-stopped
     environment:
-      - PUBLIC_SERVER_URL=http://server:8000
-      - ORIGIN=${PUBLIC_URL}
+      - ORIGIN=${PUBLIC_URL:-http://your-truenas-ip:8015}
       - BODY_SIZE_LIMIT=Infinity
-    expose:
-      - "3000"
+    ports:
+      - "${FRONTEND_PORT:-8015}:3000"
     depends_on:
       - server
     networks:
-      - adventurelog-network
+      - adventurelog
 
-  # AdventureLog Backend
   server:
     image: ${GITHUB_USERNAME:-ghcr.io/TU_USUARIO}/adventurelog-trekking-backend:latest
     container_name: adventurelog-backend
     restart: unless-stopped
     environment:
       - PGHOST=db
-      - POSTGRES_DB=${POSTGRES_DB:-adventurelog}
-      - POSTGRES_USER=${POSTGRES_USER:-adventurelog}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - SECRET_KEY=${DJANGO_SECRET_KEY}
+      - PGDATABASE=${POSTGRES_DB:-adventurelog}
+      - PGUSER=${POSTGRES_USER:-adventurelog}
+      - PGPASSWORD=${POSTGRES_PASSWORD:-changeme123}
+      - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY:-your-secret-key-change-this}
       - DJANGO_ADMIN_USERNAME=${DJANGO_ADMIN_USERNAME:-admin}
-      - DJANGO_ADMIN_PASSWORD=${DJANGO_ADMIN_PASSWORD}
+      - DJANGO_ADMIN_PASSWORD=${DJANGO_ADMIN_PASSWORD:-admin}
       - DJANGO_ADMIN_EMAIL=${DJANGO_ADMIN_EMAIL:-admin@example.com}
-      - PUBLIC_URL=${PUBLIC_URL}
-      - CSRF_TRUSTED_ORIGINS=${CSRF_TRUSTED_ORIGINS}
-      - DEBUG=False
-      - FRONTEND_URL=${PUBLIC_URL}
-    expose:
-      - "80"
+      - PUBLIC_URL=${PUBLIC_URL:-http://your-truenas-ip:8015}
+      - CSRF_TRUSTED_ORIGINS=${PUBLIC_URL:-http://your-truenas-ip:8015}
+      - DJANGO_DEBUG=False
+    ports:
+      - "${BACKEND_PORT:-8016}:8000"
     depends_on:
       - db
     volumes:
       - adventurelog_media:/code/media/
     networks:
-      - adventurelog-network
+      - adventurelog
 
-  # PostgreSQL Database
   db:
     image: postgis/postgis:16-3.5
     container_name: adventurelog-db
@@ -50,37 +47,18 @@ services:
     environment:
       - POSTGRES_DB=${POSTGRES_DB:-adventurelog}
       - POSTGRES_USER=${POSTGRES_USER:-adventurelog}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-changeme123}
     volumes:
       - postgres_data:/var/lib/postgresql/data/
     networks:
-      - adventurelog-network
-
-  # Nginx Proxy Manager
-  nginx-proxy-manager:
-    image: 'jc21/nginx-proxy-manager:latest'
-    container_name: nginx-proxy-manager
-    restart: unless-stopped
-    ports:
-      - '80:80'      # HTTP
-      - '443:443'    # HTTPS
-      - '81:81'      # Admin UI
-    volumes:
-      - npm_data:/data
-      - npm_letsencrypt:/etc/letsencrypt
-    networks:
-      - adventurelog-network
+      - adventurelog
 
 volumes:
   postgres_data:
     driver: local
   adventurelog_media:
     driver: local
-  npm_data:
-    driver: local
-  npm_letsencrypt:
-    driver: local
 
 networks:
-  adventurelog-network:
+  adventurelog:
     driver: bridge
