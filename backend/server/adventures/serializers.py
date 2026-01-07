@@ -107,6 +107,25 @@ class TrailSerializer(CustomModelSerializer):
         fields = ['id', 'user', 'name', 'location', 'created_at','link','wanderer_id', 'provider', 'wanderer_data', 'wanderer_link']
         read_only_fields = ['id', 'created_at', 'user', 'provider']
 
+    def validate(self, data):
+        """Validate that trail has either link OR wanderer_id, but not both or neither"""
+        link = data.get('link', '').strip() if data.get('link') else ''
+        wanderer_id = data.get('wanderer_id', '').strip() if data.get('wanderer_id') else ''
+
+        has_link = bool(link)
+        has_wanderer_id = bool(wanderer_id)
+
+        if has_link and has_wanderer_id:
+            raise serializers.ValidationError(
+                "Cannot have both a link and a Wanderer ID. Please provide only one."
+            )
+        if not has_link and not has_wanderer_id:
+            raise serializers.ValidationError(
+                "You must provide either an external link or a Wanderer Trail ID."
+            )
+
+        return data
+
     def _get_wanderer_integration(self, user):
         """Cache wanderer integration to avoid multiple database queries"""
         if user.id not in self._wanderer_integration_cache:

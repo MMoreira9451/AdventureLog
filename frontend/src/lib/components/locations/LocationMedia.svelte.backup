@@ -989,14 +989,50 @@
 					{$t('adventures.trails_management_description')}
 				</div>
 
-			<!-- Add Trail Form -->
-			{#if showAddTrailForm}
-				<TrailForm
-					{itemId}
-					onTrailCreated={handleTrailCreated}
-					onCancel={handleTrailFormCancel}
-				/>
-			{/if}
+				<!-- Add Trail Form -->
+				{#if showAddTrailForm}
+					<div class="bg-accent/5 p-4 rounded-lg border border-accent/20 mb-6">
+						<h4 class="font-medium mb-3 text-accent">{$t('adventures.add_new_trail')}</h4>
+						<div class="grid gap-3">
+							<input
+								type="text"
+								bind:value={trailName}
+								class="input input-bordered"
+								placeholder="Trail name"
+								disabled={isTrailLoading}
+							/>
+							<input
+								type="url"
+								bind:value={trailLink}
+								class="input input-bordered"
+								placeholder={$t('adventures.external_link') + ' (AllTrails, Trailforks, etc.)'}
+								disabled={isTrailLoading}
+							/>
+							{#if trailError}
+								<div class="alert alert-error py-2">
+									<span class="text-sm">{trailError}</span>
+								</div>
+							{/if}
+							<div class="flex gap-2 justify-end">
+								<button
+									class="btn btn-ghost btn-sm"
+									disabled={isTrailLoading}
+									on:click={resetTrailForm}
+								>
+									{$t('adventures.cancel')}
+								</button>
+								<button
+									class="btn btn-accent btn-sm"
+									class:loading={isTrailLoading}
+									disabled={isTrailLoading || !trailName.trim() || !trailLink.trim()}
+									on:click={createTrail}
+								>
+									{$t('adventures.create_trail')}
+								</button>
+							</div>
+						</div>
+					</div>
+				{/if}
 
 				<!-- Wanderer Trails Form -->
 				{#if showWandererForm}

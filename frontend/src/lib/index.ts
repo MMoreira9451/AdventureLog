@@ -980,53 +980,44 @@ function getXYZStyle(tileUrl: string | string[], attribution: string, baseUrl?: 
 
 // Enhanced basemap options array
 export const basemapOptions = [
-	{ value: 'default', label: 'Default', icon: '🗺️', category: 'Standard' },
-
-	// 3D Terrain Maps (New Category)
-	{ value: 'terrain-3d', label: '3D Terrain', icon: '🏔️', category: '3D Terrain' },
+	// Essential Maps (Always visible - top picks for hiking/trekking)
+	{ value: 'default', label: 'Default', icon: '🗺️', category: 'essential' },
+	{ value: 'terrain-3d', label: '3D Terrain', icon: '🏔️', category: 'essential' },
+	{ value: 'opentopomap', label: 'OpenTopoMap', icon: '🧭', category: 'essential' },
 	{
 		value: 'satellite-terrain-3d',
 		label: '3D Satellite Terrain',
 		icon: '🛰️',
-		category: '3D Terrain'
+		category: 'essential'
 	},
-	{ value: 'topo-terrain-3d', label: '3D Topographic', icon: '🗻', category: '3D Terrain' },
 
-	// Standard & Vector
-	{ value: 'osm-standard', label: 'OpenStreetMap', icon: '🌍', category: 'Standard' },
-	{ value: 'wikimedia', label: 'Wikimedia', icon: '📖', category: 'Standard' },
-
-	// Satellite & Imagery
-	{ value: 'satellite', label: 'Satellite', icon: '🛰️', category: 'Satellite' },
-	{ value: 'satellite-labels', label: 'Satellite + Labels', icon: '🏷️', category: 'Satellite' },
-	{ value: 'usgs-imagery', label: 'USGS Imagery', icon: '📸', category: 'Satellite' },
-	{ value: 'usgs-imagery-topo', label: 'USGS Imagery + Topo', icon: '🗻', category: 'Satellite' },
-
-	// Topographic & Terrain
-	{ value: 'elevation', label: 'Elevation', icon: '🏔️', category: 'Topographic' },
-	{ value: 'usgs-topo', label: 'USGS Topo', icon: '📊', category: 'Topographic' },
-	{ value: 'esri-topo', label: 'Esri Topo', icon: '🗾', category: 'Topographic' },
-	{ value: 'opentopomap', label: 'OpenTopoMap', icon: '🧭', category: 'Topographic' },
-
-	// Clean & Minimal
-	{ value: 'carto-light', label: 'Light', icon: '☀️', category: 'Clean' },
-	{ value: 'carto-dark', label: 'Dark', icon: '🌙', category: 'Clean' },
-	{ value: 'carto-positron', label: 'Positron', icon: '⚡', category: 'Clean' },
-	{ value: 'carto-positron-labels', label: 'Positron + Labels', icon: '🏷️', category: 'Clean' },
-	{ value: 'esri-gray', label: 'Gray Canvas', icon: '⬜', category: 'Clean' },
-
-	// Specialized
-	{ value: 'carto-voyager', label: 'Voyager', icon: '🚢', category: 'Specialized' },
-	{ value: 'osm-humanitarian', label: 'Humanitarian', icon: '🏥', category: 'Specialized' },
-	{ value: 'esri-streets', label: 'Streets', icon: '🛣️', category: 'Specialized' },
+	// Advanced Maps (Collapsed by default)
+	{ value: 'topo-terrain-3d', label: '3D Topographic', icon: '🗻', category: 'advanced' },
+	{ value: 'osm-standard', label: 'OpenStreetMap', icon: '🌍', category: 'advanced' },
+	{ value: 'wikimedia', label: 'Wikimedia', icon: '📖', category: 'advanced' },
+	{ value: 'satellite', label: 'Satellite', icon: '🛰️', category: 'advanced' },
+	{ value: 'satellite-labels', label: 'Satellite + Labels', icon: '🏷️', category: 'advanced' },
+	{ value: 'usgs-imagery', label: 'USGS Imagery', icon: '📸', category: 'advanced' },
+	{ value: 'usgs-imagery-topo', label: 'USGS Imagery + Topo', icon: '🗻', category: 'advanced' },
+	{ value: 'elevation', label: 'Elevation', icon: '🏔️', category: 'advanced' },
+	{ value: 'usgs-topo', label: 'USGS Topo', icon: '📊', category: 'advanced' },
+	{ value: 'esri-topo', label: 'Esri Topo', icon: '🗾', category: 'advanced' },
+	{ value: 'carto-light', label: 'Light', icon: '☀️', category: 'advanced' },
+	{ value: 'carto-dark', label: 'Dark', icon: '🌙', category: 'advanced' },
+	{ value: 'carto-positron', label: 'Positron', icon: '⚡', category: 'advanced' },
+	{ value: 'carto-positron-labels', label: 'Positron + Labels', icon: '🏷️', category: 'advanced' },
+	{ value: 'esri-gray', label: 'Gray Canvas', icon: '⬜', category: 'advanced' },
+	{ value: 'carto-voyager', label: 'Voyager', icon: '🚢', category: 'advanced' },
+	{ value: 'osm-humanitarian', label: 'Humanitarian', icon: '🏥', category: 'advanced' },
+	{ value: 'esri-streets', label: 'Streets', icon: '🛣️', category: 'advanced' },
 	{
 		value: 'esri-national-geographic',
 		label: 'National Geographic',
 		icon: '🌎',
-		category: 'Specialized'
+		category: 'advanced'
 	},
-	{ value: 'esri-oceans', label: 'Oceans', icon: '🌊', category: 'Specialized' },
-	{ value: 'osm-france', label: 'France Style', icon: '🇫🇷', category: 'Specialized' }
+	{ value: 'esri-oceans', label: 'Oceans', icon: '🌊', category: 'advanced' },
+	{ value: 'osm-france', label: 'France Style', icon: '🇫🇷', category: 'advanced' }
 ];
 
 export function getBasemapLabel(value: string) {
